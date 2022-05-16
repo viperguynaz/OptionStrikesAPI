@@ -19,5 +19,10 @@
         {
             return new DateTime(1970, 1, 1).Add(TimeSpan.FromSeconds(unixTime));
         }
+
+        public static string ToShortDate(long unixTime)
+        {
+            return new DateTime(1970, 1, 1).Add(TimeSpan.FromSeconds(unixTime)).ToShortDateString();
+        }
     }
 }

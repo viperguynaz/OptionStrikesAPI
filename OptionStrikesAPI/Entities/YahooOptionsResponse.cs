@@ -351,7 +351,7 @@ namespace OptionStrikes.Entities
         public string? UnderlyingSymbol { get; set; }
 
         [JsonPropertyName("expirationDates")]
-        public List<long>? ExpirationDates { get; set; }
+        public List<long>? ExpirationTicks { get; set; }
 
         [JsonPropertyName("strikes")]
         public List<double>? Strikes { get; set; }
@@ -365,7 +365,8 @@ namespace OptionStrikes.Entities
         [JsonPropertyName("options")]
         public List<Option>? Options { get; set; }
 
-        public List<Expiration> ExpirationValues => ExpirationDates == null ? new List<Expiration>() : ExpirationDates.Select(ticks => new Expiration(ticks)).ToList();
+        [JsonIgnore]
+        public List<DateTime> ExpirationDates => ExpirationTicks == null ? new List<DateTime>() : ExpirationTicks.Select(ticks => UnixTimeHelper.ToDateTime(ticks)).ToList();
 
     }
 

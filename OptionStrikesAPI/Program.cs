@@ -21,36 +21,34 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateTime.Now.AddDays(index),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.MapGet("/expirations/{symbol}", async (string symbol) =>
+app.MapGet("/expirationTicks/{symbol:alpha}", async (string symbol) =>
 {
     var request = new YahooOptionsRequest(symbol);
     var yahooResponse = await http.GetFromJsonAsync<YahooOptionsResponse>(request.Url);
-    return yahooResponse.OptionChain.Result[0].ExpirationDates.ToArray();
+    return yahooResponse?.OptionChain?.Result?[0].ExpirationTicks;
+}).WithName("GetExpirationTicks");
+
+
+app.MapGet("/expirationDates/{symbol:alpha}", async (string symbol) =>
+{
+    var request = new YahooOptionsRequest(symbol);
+    var yahooResponse = await http.GetFromJsonAsync<YahooOptionsResponse>(request.Url);
+    return yahooResponse?.OptionChain?.Result?[0].ExpirationDates;
+}).WithName("GetExpirationDates");
+
+app.MapGet("strikes/{symbol:alpha}", async (string symbol) =>
+{
+    var request = new YahooOptionsRequest(symbol);
+    var yahooResponse = await http.GetFromJsonAsync<YahooOptionsResponse>(request.Url);
+    return yahooResponse?.OptionChain?.Result?[0].Strikes;
+}).WithName("GetStrikes");
+
+app.MapGet("openInterest/{symbol:alpha}/{ticks:long}", async (string symbol, long ticks) => {
+    var request = new YahooOptionsRequest(symbol);
+    var yahooResponse = await http.GetFromJsonAsync<YahooOptionsResponse>(request.Url);
+    var expirations = yahooResponse?.OptionChain?.Result?[0].ExpirationTicks.Where(tick => UnixTimeHelper.ToDateTime(tick) < DateTime.Now.AddDays(60));
+    return 2;
 });
 
 app.Run();
 
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
